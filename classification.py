@@ -236,14 +236,10 @@ def classify():
         print(f"LP classifier misclassified test data {check_result(test_data, lc_res.x)} times")
         # Perceptron learning classifier
         pl_res = perceptron_learning(training_data)
-        if check_result(training_data, pl_res) == 0:
-            pl_successes += 1
-            print(f"Perceptron Learning found solution {pl_res}\n")
+        print(f"LP classifier misclassified test data {check_result(test_data, pl_res)} times")
         # Gradient descent
         gd_res = gradient_descent(least_squares_loss, training_data)
-        if check_result(training_data, gd_res) == 0:
-            gd_successes += 1
-            print(f"Gradient Descent found solution {gd_res}\n")
+        print(f"Gradient descent misclassified test data {check_result(test_data, gd_res)} times")
         # Show plot at end
         if show_plots:
             plot_results(test_data, [source_vector, lc_res.x, pl_res, gd_res],
