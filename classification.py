@@ -173,7 +173,7 @@ def gradient_descent(loss_function, data):
 
     start = perf_counter()
 
-    while not check_result(data, w):
+    while check_result(data, w) > 0:
         # Adjusts the alpha to be smaller as the program progresses
         alpha = 1 / math.log(count, 10.0)
         slope = dfdx(w)
@@ -230,7 +230,7 @@ def classify():
     gd_successes = 0
     for _ in range(iterations):
         source_vector, training_data = gen_data(labels=(-1, 1))
-        test_data = gen_data(labels=(-1, 1), source_vector=source_vector)
+        _, test_data = gen_data(labels=(-1, 1), source_vector=source_vector)
         # Linprog classifier
         lc_res = linprog_classifier(training_data)
         print(f"LP classifier misclassified test data {check_result(test_data, lc_res.x)} times")
@@ -248,9 +248,6 @@ def classify():
                       "Perceptron Learning",
                       "Gradient Descent"],
                          "Vectors")
-    print(f"Perceptron learning solution succeeded {pl_successes} times out of {iterations}")
-    print(f"Linear programming solution succeeded {lc_successes} times out of {iterations}")
-    print(f"Gradient descent solution succeeded {gd_successes} times out of {iterations}")
 
 
 classify()
