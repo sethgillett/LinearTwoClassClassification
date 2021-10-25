@@ -1,17 +1,17 @@
 import math
 import random
-import string
-
-from matplotlib import pyplot as plt
-from scipy import optimize as opt
-from autograd import grad
-from autograd import numpy as np
 from time import perf_counter
 
+from autograd import grad
+from autograd import numpy as np
+from scipy import optimize as opt
+
+# logistic function constant
+from utilities import check_relabeling, no_misclassifications, check_result, plot_accuracy, plot_results
 
 # CONSTANTS
 
-# logistic function constant
+# constant for logistic function
 t = 3
 # size of training data set
 training_data_set_size = 100
@@ -25,22 +25,11 @@ test_data_iterations = 100
 show_plots = True
 
 
-# Debug function to check whether data has been properly relabeled
-def check_relabeling(old_data, new_data, old_labels, new_labels):
-    for i in range(len(old_data)):
-        old_label = old_data[i][1]
-        idx = old_labels.index(old_label)
-        new_label = new_labels[idx]
-        if new_data[i][1] != new_label:
-            return False
-    return True
-
-
 # Least squares loss function
 def least_squares_loss(w, data):
     total = 0
     for (x, y) in data:
-        total += (logistic(t * np.dot(x, w)) - y) ** 2
+        total += (logistic(np.dot(x, w)) - y) ** 2
     return total / len(data)
 
 
@@ -63,20 +52,17 @@ def soft_max_loss(w, data):
 
 # Logistic step function
 def logistic(x):
-    return 1 / (1 + math.e ** (-x))
+    return 1 / (1 + math.e ** (-t*x))
 
 
 # Generate training / test data
 def gen_data(labels=(-1, 1), data_set_size=100, source_vector=None):
-    # w_length = random.randint(2, 10)
     w_length = 2
     if source_vector is None:
         # bias weight
-        # w = [random.uniform(-0.5, 0.5)]
         source_vector = [random.uniform(-50, 50)]
         # remaining weights
         for _ in range(w_length):
-            # w.append(random.uniform(-5, 5))
             source_vector.append(random.uniform(-100, 100))
         source_vector = np.array(source_vector)
     data = []
@@ -95,14 +81,6 @@ def gen_data(labels=(-1, 1), data_set_size=100, source_vector=None):
             y = labels[1]
         data.append([x, y])
     return source_vector, data
-
-
-# def logistic_regression(loss_function, data):
-#     w = np.zeros(len(data[0][0]))
-#     loss_grad = grad(loss_function)
-#     for _ in range(grad_descent_iterations):
-#         grad_neg = loss_grad(w)
-#         print(grad_neg)
 
 
 def perceptron_learning(data):
@@ -133,24 +111,6 @@ def perceptron_learning(data):
 
     print(f"Perceptron learning took {stop - start} seconds with {iterations} iterations")
     return w
-
-
-def check_result(data, w):
-    misclassifications = 0
-    for (x, y) in data:
-        classification = math.copysign(y, np.dot(x, w))
-        if classification != y:
-            misclassifications += 1
-    return misclassifications
-
-
-# Algorithm performs significantly faster when checking with this function
-def no_misclassifications(data, w):
-    for (x, y) in data:
-        classification = math.copysign(y, np.dot(x, w))
-        if classification != y:
-            return False
-    return True
 
 
 def linprog_classifier(data):
@@ -203,65 +163,6 @@ def gradient_descent(loss_function, data, relabel=True):
     return w
 
 
-def scatter_color(x_values, y_values):
-    plt.scatter(x_values, y_values, c=np.arange(0, 255, 255 / (len(x_values))))
-    plt.savefig('scatter-with-color.png', bbox_inches='tight')
-    plt.show()
-
-
-def plot_results(data, vectors, labels, title):
-    x_values = []
-    y_values = []
-    colors = []
-    for (x, y) in data:
-        x_values.append(x[1])
-        y_values.append(x[2])
-        if y > 0:
-            colors.append('C1')
-        else:
-            colors.append('C2')
-    plt.scatter(x_values, y_values, c=colors)
-    for v in range(len(vectors)):
-        vector = vectors[v]
-        label = labels[v]
-        vector_x_values = [min(x_values), max(x_values)]
-        vector_y_values = []
-        for x in vector_x_values:
-            # a + bx + cy = 0
-            # y = - (bx + a) / c
-            vector_y_values.append(-(vector[0] + x * vector[1]) / vector[2])
-            # source_vector_y_values.append(x)
-        plt.plot(vector_x_values, vector_y_values, label=label, color=f'C{v}')
-    leg = plt.legend(loc='best', ncol=2, mode="expand")
-    leg.get_frame().set_alpha(0.5)
-    plt.title(title)
-    plt.show()
-
-
-def plot_accuracy(labels, results):
-    y_pos = np.arange(len(labels))
-    heights = [height*100 for height in results]
-    labels = [get_acronym(label) for label in labels]
-    fig, ax = plt.subplots()
-
-    hbars = ax.barh(y_pos, heights, align='center')
-    ax.set_yticks(y_pos)
-    ax.set_yticklabels(labels)
-    ax.invert_yaxis()  # labels read top-to-bottom
-    ax.set_xlabel('Accuracy (%)')
-    ax.set_title('Accuracy of Linear Classification Algorithms')
-
-    # Label with specially formatted floats
-    ax.bar_label(hbars, fmt='%.2f')
-    ax.set_xlim(left=min(heights)-10, right=101)
-
-    plt.show()
-
-
-def get_acronym(label):
-    return "".join([c for c in label if c in string.ascii_uppercase])
-
-
 def classify():
     # Perceptron Learning misclassifications
     pl_misclassifications = 0
@@ -276,19 +177,14 @@ def classify():
     # Generate training data and source vector
     source_vector, training_data = gen_data(labels=(-1, 1), data_set_size=training_data_set_size)
     # Linprog classifier
-    # print("Starting linear programming classifier")
     lc_res = linprog_classifier(training_data).x
     # Perceptron learning classifier
-    # print("Starting perceptron learning classifier")
     pl_res = perceptron_learning(training_data)
     # Gradient descent with least squares loss function
-    # print("Starting gradient descent with least squares loss function")
     gd_ls_res = gradient_descent(least_squares_loss, training_data, relabel=True)
     # Gradient descent with soft max loss function
-    # print("Starting gradient descent with soft max loss function")
     gd_sm_res = gradient_descent(soft_max_loss, training_data, relabel=False)
     # Gradient descent with cross-entropy loss function
-    # print("Starting gradient descent with cross entropy loss function")
     gd_ce_res = gradient_descent(cross_entropy_loss, training_data, relabel=True)
     # Show plot at end
     labels = []
