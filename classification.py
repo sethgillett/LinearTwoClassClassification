@@ -1,5 +1,6 @@
 import math
 import random
+import string
 
 from matplotlib import pyplot as plt
 from scipy import optimize as opt
@@ -17,11 +18,11 @@ training_data_set_size = 100
 # size of test data set
 test_data_set_size = 100
 # maximum number of gradient descent iterations before failure
-max_grad_descent_iterations = 1
+max_grad_descent_iterations = 100
 # number of times test data will be generated and tested against the algorithms
 test_data_iterations = 100
 # whether to show plots of data and best fit lines
-show_plots = False
+show_plots = True
 
 
 # Debug function to check whether data has been properly relabeled
@@ -237,6 +238,30 @@ def plot_results(data, vectors, labels, title):
     plt.show()
 
 
+def plot_accuracy(labels, results):
+    y_pos = np.arange(len(labels))
+    heights = [height*100 for height in results]
+    labels = [get_acronym(label) for label in labels]
+    fig, ax = plt.subplots()
+
+    hbars = ax.barh(y_pos, heights, align='center')
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels(labels)
+    ax.invert_yaxis()  # labels read top-to-bottom
+    ax.set_xlabel('Accuracy (%)')
+    ax.set_title('Accuracy of Linear Classification Algorithms')
+
+    # Label with specially formatted floats
+    ax.bar_label(hbars, fmt='%.2f')
+    ax.set_xlim(left=min(heights)-10, right=101)
+
+    plt.show()
+
+
+def get_acronym(label):
+    return "".join([c for c in label if c in string.ascii_uppercase])
+
+
 def classify():
     # Perceptron Learning misclassifications
     pl_misclassifications = 0
@@ -292,6 +317,8 @@ def classify():
     print(f"\n{test_data_iterations} test data sets were generated with {test_data_set_size} data points each")
     for label, result in zip(labels[1:], percentage_results):
         print("In total, {} classified data correctly {:.1%} of the time".format(label, result))
+    if show_plots:
+        plot_accuracy(labels[1:], percentage_results)
 
 
 classify()
