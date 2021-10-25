@@ -13,9 +13,11 @@ from time import perf_counter
 # logistic function constant
 t = 3
 # size of training data set
-data_set_size = 100
+training_data_set_size = 100
+# size of test data set
+test_data_set_size = 100
 # maximum number of gradient descent iterations before failure
-max_grad_descent_iterations = 100
+max_grad_descent_iterations = 1
 # number of times test data will be generated and tested against the algorithms
 test_data_iterations = 100
 # whether to show plots of data and best fit lines
@@ -64,7 +66,7 @@ def logistic(x):
 
 
 # Generate training / test data
-def gen_data(labels=(-1, 1), source_vector=None):
+def gen_data(labels=(-1, 1), data_set_size=100, source_vector=None):
     # w_length = random.randint(2, 10)
     w_length = 2
     if source_vector is None:
@@ -247,44 +249,49 @@ def classify():
     # Gradient Descent with cross-entropy loss function misclassifications
     gd_ce_misclassifications = 0
     # Generate training data and source vector
-    source_vector, training_data = gen_data(labels=(-1, 1))
+    source_vector, training_data = gen_data(labels=(-1, 1), data_set_size=training_data_set_size)
     # Linprog classifier
-    print("Starting linear programming classifier")
+    # print("Starting linear programming classifier")
     lc_res = linprog_classifier(training_data).x
     # Perceptron learning classifier
-    print("Starting perceptron learning classifier")
+    # print("Starting perceptron learning classifier")
     pl_res = perceptron_learning(training_data)
     # Gradient descent with least squares loss function
-    print("Starting gradient descent with least squares loss function")
+    # print("Starting gradient descent with least squares loss function")
     gd_ls_res = gradient_descent(least_squares_loss, training_data, relabel=True)
     # Gradient descent with soft max loss function
-    print("Starting gradient descent with soft max loss function")
+    # print("Starting gradient descent with soft max loss function")
     gd_sm_res = gradient_descent(soft_max_loss, training_data, relabel=False)
     # Gradient descent with cross-entropy loss function
-    print("Starting gradient descent with cross entropy loss function")
+    # print("Starting gradient descent with cross entropy loss function")
     gd_ce_res = gradient_descent(cross_entropy_loss, training_data, relabel=True)
     # Show plot at end
-    titles = [
-                 "Source Vector",
-                 "Linear Classification",
-                 "Perceptron Learning",
-                 "Gradient Descent w/ Least Squares",
-                 "Gradient Descent w/ Soft Max",
-                 "Gradient Descent w/ Cross-Entropy"
-             ],
+    labels = []
+    labels.append("Source Vector")
+    labels.append("Linear Classification")
+    labels.append("Perceptron Learning")
+    labels.append("Gradient Descent w/ Least Squares")
+    labels.append("Gradient Descent w/ Soft Max")
+    labels.append("Gradient Descent w/ Cross-Entropy")
     if show_plots:
         plot_results(training_data, [source_vector, lc_res, pl_res, gd_ls_res, gd_sm_res, gd_ce_res],
-                     titles,
+                     labels,
                      "Vectors Found")
     for _ in range(test_data_iterations):
         # Generate test data with the same source vector
-        _, test_data = gen_data(labels=(-1, 1), source_vector=source_vector)
+        _, test_data = gen_data(labels=(-1, 1), data_set_size=test_data_set_size, source_vector=source_vector)
         lc_misclassifications += check_result(test_data, lc_res)
         pl_misclassifications += check_result(test_data, pl_res)
         gd_ls_misclassifications += check_result(test_data, gd_ls_res)
         gd_sm_misclassifications += check_result(test_data, gd_sm_res)
         gd_ce_misclassifications += check_result(test_data, gd_ce_res)
-    print()
+    results = [lc_misclassifications, pl_misclassifications, gd_ls_misclassifications,
+               gd_sm_misclassifications, gd_ce_misclassifications]
+    total_data_size = test_data_set_size * test_data_iterations
+    percentage_results = [(total_data_size - result)/total_data_size for result in results]
+    print(f"\n{test_data_iterations} test data sets were generated with {test_data_set_size} data points each")
+    for label, result in zip(labels[1:], percentage_results):
+        print("In total, {} classified data correctly {:.1%} of the time".format(label, result))
 
 
 classify()
