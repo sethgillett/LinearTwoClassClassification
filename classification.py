@@ -11,18 +11,21 @@ from utilities import check_relabeling, no_misclassifications, check_result, plo
 
 # CONSTANTS
 
-# constant for logistic function
+# constant for logistic function in least squares cost function
 t = 3
 # size of training data set
 training_data_set_size = 100
 # size of test data set
 test_data_set_size = 100
-# maximum number of gradient descent iterations before failure
+# maximum number of gradient descent iterations before failure (if force_perfect_training_classification is False)
 max_grad_descent_iterations = 100
 # number of times test data will be generated and tested against the algorithms
 test_data_iterations = 1000
 # whether to show plots of data and best fit lines
 show_plots = True
+# force gradient descent to achieve 100% correct classification in training data before proceeding
+# WARNING: may cause program to hang
+force_perfect_training_classification = False
 
 
 # Least squares loss function
@@ -109,7 +112,7 @@ def perceptron_learning(data):
 
     stop = perf_counter()
 
-    print(f"Perceptron learning took {stop - start} seconds with {iterations} iterations")
+    print("Perceptron learning took {:.2f} seconds with {} iterations".format(stop-start, iterations))
     return w
 
 
@@ -128,7 +131,7 @@ def linprog_classifier(data):
 
     stop = perf_counter()
 
-    print(f"LP classifier took {stop - start} seconds")
+    print("LP classifier took {:.2f} seconds".format(stop-start))
 
     return result
 
@@ -149,16 +152,19 @@ def gradient_descent(loss_function, data, relabel=True):
 
     start = perf_counter()
 
-    while not no_misclassifications(data, w) and count < max_grad_descent_iterations:
-        # Adjusts the alpha to be smaller as the program progresses
-        alpha = 1 / (count + 1)
+    alpha = 0.1
+    while (not no_misclassifications(data, w)) and \
+            (count < max_grad_descent_iterations or force_perfect_training_classification):
         slope = dfdx(w)
         w += - alpha * slope
         count += 1
+        # Decrease alpha if solution is not found
+        if count % 100 == 0:
+            alpha = alpha / 2.0
 
     stop = perf_counter()
-    print(f"Gradient descent took {stop - start} seconds, {count} iterations, and {check_result(data, w)} "
-          f"misclassifications in training data")
+    print("Gradient descent took {:.2f} seconds, {} iterations, and {} "
+          "misclassifications in training data".format(stop-start, count, check_result(data, w)))
 
     return w
 
