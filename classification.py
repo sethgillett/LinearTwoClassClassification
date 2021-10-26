@@ -29,7 +29,7 @@ show_plots = True
 def least_squares_loss(w, data):
     total = 0
     for (x, y) in data:
-        total += (logistic(np.dot(x, w)) - y) ** 2
+        total += (logistic(t * np.dot(x, w)) - y) ** 2
     return total / len(data)
 
 
@@ -52,7 +52,7 @@ def soft_max_loss(w, data):
 
 # Logistic step function
 def logistic(x):
-    return 1 / (1 + math.e ** (-t*x))
+    return 1 / (1 + np.e ** (-x))
 
 
 # Generate training / test data
