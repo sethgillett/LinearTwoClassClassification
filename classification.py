@@ -20,7 +20,7 @@ test_data_set_size = 100
 # maximum number of gradient descent iterations before failure
 max_grad_descent_iterations = 100
 # number of times test data will be generated and tested against the algorithms
-test_data_iterations = 100
+test_data_iterations = 1000
 # whether to show plots of data and best fit lines
 show_plots = True
 
@@ -194,10 +194,6 @@ def classify():
     labels.append("Gradient Descent w/ Least Squares")
     labels.append("Gradient Descent w/ Soft Max")
     labels.append("Gradient Descent w/ Cross-Entropy")
-    if show_plots:
-        plot_results(training_data, [source_vector, lc_res, pl_res, gd_ls_res, gd_sm_res, gd_ce_res],
-                     labels,
-                     "Vectors Found")
     for _ in range(test_data_iterations):
         # Generate test data with the same source vector
         _, test_data = gen_data(labels=(-1, 1), data_set_size=test_data_set_size, source_vector=source_vector)
@@ -214,6 +210,9 @@ def classify():
     for label, result in zip(labels[1:], percentage_results):
         print("In total, {} classified data correctly {:.1%} of the time".format(label, result))
     if show_plots:
+        plot_results(training_data, [source_vector, lc_res, pl_res, gd_ls_res, gd_sm_res, gd_ce_res],
+                     labels,
+                     "Vectors Found in Training Data")
         plot_accuracy(labels[1:], percentage_results)
 
 
