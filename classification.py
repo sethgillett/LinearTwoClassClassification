@@ -6,7 +6,6 @@ from autograd import grad
 from autograd import numpy as np
 from scipy import optimize as opt
 
-# logistic function constant
 from utilities import check_relabeling, no_misclassifications, check_result, plot_accuracy, plot_results
 
 # CONSTANTS
